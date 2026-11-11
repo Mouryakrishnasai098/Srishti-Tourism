@@ -1673,59 +1673,162 @@ function savePreferencesFromModal() {
   showToast('Travel preferences applied!', '✨');
 }
 
+// ---------- Login gate & local accounts ----------
+// Accounts are stored on this device only (localStorage). Passwords are saved as salted SHA-256 hashes.
+const ACCOUNTS_KEY = 'srishti_accounts_v1';
+const SESSION_KEY = 'srishti_session_v1';
+let authGateActive = false;
+
+function readAccounts() {
+  try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '{}') || {}; } catch (e) { return {}; }
+}
+function writeAccounts(acc) {
+  try { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(acc)); } catch (e) {}
+}
+function getSessionEmail() {
+  try { return localStorage.getItem(SESSION_KEY) || ''; } catch (e) { return ''; }
+}
+function setSessionEmail(email) {
+  try {
+    if (email) localStorage.setItem(SESSION_KEY, email); else localStorage.removeItem(SESSION_KEY);
+  } catch (e) {}
+}
+
+async function hashPassword(password, salt) {
+  const text = salt + '::' + password;
+  try {
+    if (window.crypto && window.crypto.subtle) {
+      const buf = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    }
+  } catch (e) {}
+  // fallback for very old browsers
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) >>> 0;
+  return 'f' + h.toString(16);
+}
+
+function newSalt() {
+  try {
+    const a = new Uint8Array(12);
+    window.crypto.getRandomValues(a);
+    return Array.from(a).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  } catch (e) { return String(Date.now()) + Math.random().toString(16).slice(2); }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  if (!el) return;
+  if (msg) { el.textContent = msg; el.classList.remove('hidden'); }
+  else { el.textContent = ''; el.classList.add('hidden'); }
+}
+
 function openAuthModal() {
+  showAuthError('');
   document.getElementById('authModal').classList.remove('hidden');
 }
 
 function closeAuthModal() {
+  if (authGateActive) return; // cannot dismiss the login page before signing in
   document.getElementById('authModal').classList.add('hidden');
+}
+
+function showLoginGate() {
+  authGateActive = true;
+  document.body.classList.add('auth-locked');
+  const closeBtn = document.getElementById('authCloseBtn');
+  if (closeBtn) closeBtn.classList.add('hidden');
+  const hasAccounts = Object.keys(readAccounts()).length > 0;
+  switchAuthMode(hasAccounts ? 'signin' : 'signup');
+  ['authEmail', 'authPassword', 'authFullName', 'authHomeCity'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  openAuthModal();
+}
+
+function unlockApp() {
+  authGateActive = false;
+  document.body.classList.remove('auth-locked');
+  const closeBtn = document.getElementById('authCloseBtn');
+  if (closeBtn) closeBtn.classList.remove('hidden');
+  document.getElementById('authModal').classList.add('hidden');
+}
+
+function signOut() {
+  setSessionEmail('');
+  showLoginGate();
+  window.scrollTo(0, 0);
 }
 
 function switchAuthMode(mode) {
   state.authMode = mode;
+  showAuthError('');
   const inBtn = document.getElementById('authTabSignIn');
   const upBtn = document.getElementById('authTabSignUp');
   const nameWrap = document.getElementById('authNameWrapper');
   const homeWrap = document.getElementById('authHomeWrapper');
   const subBtn = document.getElementById('authSubmitBtn');
+  const pw = document.getElementById('authPassword');
   if (mode === 'signup') {
     upBtn.className = 'py-2 rounded-lg text-xs font-bold bg-srishti-navy text-white transition';
     inBtn.className = 'py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-srishti-navy transition';
     nameWrap.classList.remove('hidden');
     homeWrap.classList.remove('hidden');
     subBtn.textContent = 'Create Srishti Tourism Account';
+    if (pw) pw.setAttribute('autocomplete', 'new-password');
   } else {
     inBtn.className = 'py-2 rounded-lg text-xs font-bold bg-srishti-navy text-white transition';
     upBtn.className = 'py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-srishti-navy transition';
     nameWrap.classList.add('hidden');
     homeWrap.classList.add('hidden');
     subBtn.textContent = 'Sign In to Srishti Tourism';
+    if (pw) pw.setAttribute('autocomplete', 'current-password');
   }
 }
 
-function handleAuthSubmit(e) {
+async function handleAuthSubmit(e) {
   if (e && e.preventDefault) e.preventDefault();
-  const email = (document.getElementById('authEmail').value || '').trim();
+  showAuthError('');
+  const emailRaw = (document.getElementById('authEmail').value || '').trim();
+  const email = emailRaw.toLowerCase();
+  const password = document.getElementById('authPassword').value || '';
+  if (!email) { showAuthError('Please enter your email or username.'); return; }
+  if (!password) { showAuthError('Please enter your password.'); return; }
+
+  const accounts = readAccounts();
+
   if (state.authMode === 'signup') {
-    const fullName = (document.getElementById('authFullName').value || '').trim() || email.split('@')[0];
-    const homeCity = (document.getElementById('authHomeCity').value || '').trim() || 'Ukkunagaram, Visakhapatnam';
+    const fullName = (document.getElementById('authFullName').value || '').trim();
+    const homeCity = (document.getElementById('authHomeCity').value || '').trim() || 'Visakhapatnam';
+    if (!fullName) { showAuthError('Please enter your full name.'); return; }
+    if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+    if (accounts[email]) { showAuthError('An account with this email already exists. Please sign in.'); return; }
+    const salt = newSalt();
+    accounts[email] = { name: fullName, email: emailRaw, home: homeCity, salt: salt, hash: await hashPassword(password, salt) };
+    writeAccounts(accounts);
     state.user.name = fullName;
-    state.user.email = email;
+    state.user.email = emailRaw;
     state.user.home = homeCity;
     state.user.avatar = fullName.charAt(0).toUpperCase();
-    showToast('Account created for ' + fullName + '!', '🎉');
+    showToast('Account created. Welcome, ' + fullName + '!', '🎉');
   } else {
-    const namePart = email.split('@')[0] || 'Srishti Explorer';
-    state.user.email = email;
-    if (!state.user.name || state.user.name === 'Srishti Explorer') {
-      state.user.name = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-    }
-    showToast('Signed in as ' + state.user.name + '!', '🔐');
+    const acc = accounts[email];
+    if (!acc) { showAuthError('No account found. Please tap "Create Account" first.'); return; }
+    if ((await hashPassword(password, acc.salt)) !== acc.hash) { showAuthError('Incorrect password. Please try again.'); return; }
+    state.user.name = acc.name;
+    state.user.email = acc.email;
+    state.user.home = acc.home;
+    state.user.avatar = (acc.name || 'S').charAt(0).toUpperCase();
+    showToast('Welcome back, ' + acc.name + '!', '🔐');
   }
+
+  setSessionEmail(email);
   persistState();
   syncHeaderUser();
   renderProfileTab();
-  closeAuthModal();
+  document.getElementById('authPassword').value = '';
+  unlockApp();
 }
 
 function openApiKeyModal() {
@@ -1763,4 +1866,19 @@ window.addEventListener('DOMContentLoaded', function() {
   renderDestinations();
   renderChatMessages();
   renderProfileTab();
+
+  // Login page comes first: the app opens only after a successful sign in
+  const sessionEmail = getSessionEmail();
+  const accounts = readAccounts();
+  if (sessionEmail && accounts[sessionEmail]) {
+    const acc = accounts[sessionEmail];
+    state.user.name = acc.name;
+    state.user.email = acc.email;
+    state.user.home = acc.home;
+    state.user.avatar = (acc.name || 'S').charAt(0).toUpperCase();
+    syncHeaderUser();
+    renderProfileTab();
+  } else {
+    showLoginGate();
+  }
 });

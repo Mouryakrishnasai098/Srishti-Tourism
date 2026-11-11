@@ -25,3 +25,11 @@ body {
   background: #CBD5E1;
   border-radius: 9999px;
 }
+
+/* Login gate: hide the whole app until the user signs in */
+body.auth-locked > *:not(#authModal):not(script) {
+  visibility: hidden !important;
+}
+body.auth-locked #authModal {
+  background: linear-gradient(135deg, #0B2545 0%, #134074 55%, #0D9488 100%);
+}
