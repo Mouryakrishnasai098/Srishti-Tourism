@@ -1,0 +1,35 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #F1F5F9;
+  color: #0F172A;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.font-display {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+}
+.crest-glow {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
+.custom-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+/* Login gate: hide the whole app until the user signs in */
+body.auth-locked > *:not(#authModal):not(script) {
+  visibility: hidden !important;
+}
+body.auth-locked #authModal {
+  background: linear-gradient(135deg, #0B2545 0%, #134074 55%, #0D9488 100%);
+}

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>Srishti Tourism — Smart Travel Companion & Trip Planner</title>
+  <link rel="stylesheet" href="tailwind.css" />
+  <script src="vendor/chart.umd.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0B2545" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Main App Wrapper -->
+  <div id="appShell" class="flex-1 flex flex-col w-full">
+
+    <!-- Clean Mobile-First Sticky Header -->
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2">
+        <!-- Brand Logo & Name -->
+        <div class="flex items-center gap-2.5 min-w-0 cursor-pointer" onclick="switchTab('explore')">
+          <div class="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl p-0.5 bg-gradient-to-br from-amber-400 via-teal-500 to-srishti-navy crest-glow shrink-0 overflow-hidden">
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-asset="logo" alt="Srishti Tourism Crest Logo" class="w-full h-full object-cover rounded-[10px] bg-white" />
+          </div>
+          <div class="min-w-0">
+            <h1 class="font-display font-extrabold text-base sm:text-xl tracking-tight text-srishti-navy truncate">
+              SRISHTI <span class="text-teal-600">TOURISM</span>
+            </h1>
+            <p class="text-[11px] text-slate-500 font-medium truncate">
+              Explore India & World Destinations
+            </p>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Pills -->
+        <nav class="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
+          <button id="nav-explore" onclick="switchTab('explore')" class="nav-tab px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-srishti-navy text-white shadow-2xs">
+            <span>🌍</span> <span>Explore & Guides</span>
+          </button>
+          <button id="nav-planner" onclick="switchTab('planner')" class="nav-tab px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-600 hover:text-srishti-navy">
+            <span>🗺️</span> <span>Trip Planner</span>
+          </button>
+          <button id="nav-trips" onclick="switchTab('trips')" class="nav-tab px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-600 hover:text-srishti-navy">
+            <span>🎒</span> <span>My Trips</span>
+            <span id="badgeTripsCount" class="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-white font-bold">3</span>
+          </button>
+          <button id="nav-chat" onclick="switchTab('chat')" class="nav-tab px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-600 hover:text-srishti-navy">
+            <span>🤖</span> <span>Srishti AI Chat</span>
+          </button>
+          <button id="nav-profile" onclick="switchTab('profile')" class="nav-tab px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-600 hover:text-srishti-navy">
+            <span>👤</span> <span>Profile</span>
+          </button>
+        </nav>
+
+        <!-- Right Quick Actions (Preferences, Saved, User Account) -->
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button id="btnWelcomePrefs" onclick="openPreferencesModal()" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition flex items-center gap-1" title="Travel Preferences">
+            <span>✨</span> <span class="hidden sm:inline">Preferences</span>
+          </button>
+          <button id="btnSavedQuick" onclick="switchTab('trips'); setTripsSubtab('saved');" class="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 border border-slate-200 transition relative" title="Saved Places">
+            <span>❤️</span>
+            <span id="badgeSavedCount" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">4</span>
+          </button>
+          <button id="btnAuthHeader" onclick="openAuthModal()" class="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1.5 rounded-xl bg-gradient-to-r from-srishti-navy to-srishti-royal text-white text-xs font-semibold shadow-2xs hover:opacity-95 transition">
+            <span id="headerUserAvatar" class="w-6 h-6 rounded-full bg-amber-400 text-srishti-navy font-bold flex items-center justify-center text-xs shrink-0">S</span>
+            <span id="headerUserName" class="hidden sm:inline max-w-[96px] truncate">Srishti Explorer</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 pb-24 lg:pb-10">
+
+      <!-- ==========================================
+           TAB 1: EXPLORE & DESTINATION GUIDES
+           ========================================== -->
+      <section id="tab-explore" class="space-y-5">
+
+        <!-- Hero Section: Natural Flow Container (Never Overlaps on Mobile!) -->
+        <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg border border-slate-200 bg-srishti-navy">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-asset="hero" alt="Coast & Hills Panorama" class="absolute inset-0 w-full h-full object-cover opacity-35 pointer-events-none" />
+          <div class="absolute inset-0 bg-gradient-to-r from-srishti-navy via-srishti-navy/85 to-srishti-navy/60 pointer-events-none"></div>
+
+          <div class="relative z-10 p-4 sm:p-8 md:p-10 space-y-3 sm:space-y-4">
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span class="px-2.5 py-1 rounded-full bg-amber-400 text-srishti-navy font-extrabold text-[11px] uppercase tracking-wider">
+                Srishti Tourism
+              </span>
+              <span id="activePrefsBanner" class="px-2.5 py-1 rounded-full bg-white/15 text-amber-200 text-[11px] font-medium border border-white/20">
+                Personalized: Beaches, Hills & Heritage
+              </span>
+            </div>
+
+            <h2 class="font-display font-extrabold text-xl sm:text-3xl md:text-4xl text-white leading-snug max-w-2xl">
+              Explore Every Famous City, Landmark & Journey Worldwide
+            </h2>
+
+            <p class="text-slate-200 text-xs sm:text-sm max-w-2xl leading-relaxed">
+              Search any city, state, or country—from Hyderabad, Visakhapatnam, Mumbai, and Kerala to the UK, Paris, Dubai, and Tokyo—with authentic landmark photos, timings, hotels, local food, and instant trip planning.
+            </p>
+
+            <!-- Search & Quick Action Bar -->
+            <div class="pt-1 flex flex-col sm:flex-row gap-2.5 max-w-3xl">
+              <div class="relative flex-1">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                <input
+                  id="searchDestinationsInput"
+                  type="text"
+                  oninput="renderDestinations()"
+                  placeholder="Search ANY city or country (e.g., Hyderabad, UK, Mumbai, Paris, Dubai, Vizag)..."
+                  class="w-full pl-10 pr-9 py-3 rounded-xl bg-white text-slate-900 text-xs sm:text-sm font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-md"
+                />
+                <button
+                  type="button"
+                  onclick="resetExploreSearch()"
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold px-1.5 py-0.5"
+                  title="Clear Search"
+                >
+                  ✕
+                </button>
+              </div>
+              <button onclick="switchTab('planner')" class="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-srishti-navy font-bold text-xs sm:text-sm shadow-md transition shrink-0 flex items-center justify-center gap-1.5">
+                <span>⚡</span> <span>Build Custom Trip Plan</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category & Sort Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+          <div class="flex items-center gap-1.5 overflow-x-auto custom-scroll pb-1 sm:pb-0">
+            <button onclick="setCategoryFilter('all')" id="cat-all" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 bg-srishti-navy text-white">
+              All Destinations
+            </button>
+            <button onclick="setCategoryFilter('india')" id="cat-india" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 bg-slate-100 text-slate-700 hover:bg-slate-200">
+              🇮🇳 India Cities
+            </button>
+            <button onclick="setCategoryFilter('world')" id="cat-world" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 bg-slate-100 text-slate-700 hover:bg-slate-200">
+              🌐 World Hubs
+            </button>
+            <button onclick="setCategoryFilter('vizag')" id="cat-vizag" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 bg-slate-100 text-slate-700 hover:bg-slate-200">
+              🌊 Vizag & AP
+            </button>
+            <button onclick="setCategoryFilter('hills')" id="cat-hills" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 bg-slate-100 text-slate-700 hover:bg-slate-200">
+              ⛰️ Hills & Nature
+            </button>
+            <button onclick="setCategoryFilter('heritage')" id="cat-heritage" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 bg-slate-100 text-slate-700 hover:bg-slate-200">
+              🛕 Heritage
+            </button>
+            <button onclick="setCategoryFilter('coastal')" id="cat-coastal" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 bg-slate-100 text-slate-700 hover:bg-slate-200">
+              🏖️ Beaches
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+            <label for="sortDestinationsSelect" class="text-xs font-semibold text-slate-500">Sort by:</label>
+            <select id="sortDestinationsSelect" onchange="renderDestinations()" class="text-xs font-semibold bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none">
+              <option value="recommended">Recommended</option>
+              <option value="rating">Highest Rated</option>
+              <option value="budget-low">Budget: Low to High</option>
+              <option value="budget-high">Budget: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Destination Cards Grid (Clean Non-Overlapping Cards) -->
+        <div id="destinationsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          <!-- Populated dynamically by JS -->
+        </div>
+
+      </section>
+
+      <!-- ==========================================
+           TAB 2: SMART TRIP PLANNER
+           ========================================== -->
+      <section id="tab-planner" class="hidden space-y-5">
+        <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 border border-slate-200 shadow-2xs">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-teal-600">Interactive Itinerary Generator</span>
+              <h2 class="font-display font-extrabold text-lg sm:text-2xl text-srishti-navy mt-0.5">
+                Build Your Complete Srishti Trip Plan
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Type any destination below to see live attraction suggestions, then customize your dates and budget.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="fillSamplePlanner('hyderabad')" class="px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-semibold border border-teal-200 transition">
+                🕌 Sample: Hyderabad
+              </button>
+              <button onclick="fillSamplePlanner('mumbai')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold border border-amber-200 transition">
+                🌊 Sample: Mumbai
+              </button>
+              <button onclick="fillSamplePlanner('uk')" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-semibold border border-indigo-200 transition">
+                🇬🇧 Sample: UK
+              </button>
+            </div>
+          </div>
+
+          <!-- Planner Form Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-4">
+            <div class="lg:col-span-7 space-y-4">
+              <!-- Unified Destination / Location Search & Suggestions Block -->
+              <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <label for="planLocationSearch" class="block text-xs font-extrabold text-srishti-navy uppercase tracking-wider">
+                    📍 Destination / Location *
+                  </label>
+                  <span id="planSelectedBadge" class="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[11px] font-bold">
+                    Selected: Hyderabad
+                  </span>
+                </div>
+
+                <input id="planDestination" type="hidden" value="hyderabad" />
+
+                <div class="relative">
+                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                  <input
+                    id="planLocationSearch"
+                    type="text"
+                    oninput="handlePlanLocationInput(this.value)"
+                    onfocus="handlePlanLocationInput(this.value)"
+                    placeholder="Type a location (e.g., Mumbai, Hyderabad, UK, Paris, Vizag)..."
+                    class="w-full pl-10 pr-16 py-2.5 rounded-xl bg-white border border-slate-300 text-xs sm:text-sm font-semibold text-srishti-navy placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                  <button
+                    type="button"
+                    onclick="clearPlanLocationInput()"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-semibold"
+                  >
+                    Clear
+                  </button>
+                </div>
+
+                <!-- Dynamic Suggestions & Places to Explore inside the SAME block -->
+                <div id="planLocationSuggestionsBox" class="space-y-2.5 pt-1">
+                  <!-- Populated dynamically as the user types -->
+                </div>
+              </div>
+
+              <div>
+                <label for="planTitle" class="block text-xs font-bold text-slate-700 mb-1">Custom Trip Title</label>
+                <input id="planTitle" type="text" value="Hyderabad Royal Heritage & Biryani Expedition" placeholder="e.g., Family Weekend Getaway" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label for="planStartDate" class="block text-xs font-bold text-slate-700 mb-1">Start Date *</label>
+                  <input id="planStartDate" type="date" value="2026-11-20" onchange="updatePlannerPreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                </div>
+                <div>
+                  <label for="planDays" class="block text-xs font-bold text-slate-700 mb-1">Duration *</label>
+                  <select id="planDays" onchange="updatePlannerPreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <option value="2">2 Days / 1 Night</option>
+                    <option value="3" selected>3 Days / 2 Nights</option>
+                    <option value="4">4 Days / 3 Nights</option>
+                    <option value="5">5 Days / 4 Nights</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="planTravelers" class="block text-xs font-bold text-slate-700 mb-1">Travelers</label>
+                  <select id="planTravelers" onchange="updatePlannerPreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <option value="1">1 Solo Traveler</option>
+                    <option value="2" selected>2 Adults</option>
+                    <option value="4">4 Travelers (Family)</option>
+                    <option value="10">10 Travelers (Group)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="planBudget" class="block text-xs font-bold text-slate-700 mb-1">Total Trip Budget (₹ INR) *</label>
+                  <input id="planBudget" type="number" min="2000" step="500" value="15600" oninput="updatePlannerPreview()" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm font-bold text-srishti-navy focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                </div>
+                <div>
+                  <label for="planTier" class="block text-xs font-bold text-slate-700 mb-1">Comfort & Stay Style</label>
+                  <select id="planTier" onchange="updatePlannerPreview()" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <option value="Eco / Budget">Eco / Budget Friendly</option>
+                    <option value="Comfort / Standard" selected>Comfort / Standard</option>
+                    <option value="Premium / Luxury">Premium Heritage & Luxury</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                <button id="btnGenerateSaveTrip" onclick="saveGeneratedTrip()" class="px-5 py-3 rounded-xl bg-gradient-to-r from-srishti-navy to-teal-700 hover:from-srishti-royal hover:to-teal-800 text-white font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                  <span>🚀</span> <span>Save to My Trips & Generate Itinerary</span>
+                </button>
+                <button onclick="updatePlannerPreview(true)" class="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition text-center">
+                  🔄 Recalculate Breakdown
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Column: Live Budget Allocation Chart -->
+            <div class="lg:col-span-5 bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 flex flex-col justify-between">
+              <div>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <h3 class="font-display font-bold text-sm text-srishti-navy">Estimated Budget Breakdown</h3>
+                  <span id="plannerPerPersonBadge" class="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-xs font-bold">₹7,800 / person</span>
+                </div>
+                <div class="relative h-56 w-full">
+                  <canvas id="budgetChartCanvas"></canvas>
+                </div>
+              </div>
+              <div id="budgetLegendSummary" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-3 mt-3 border-t border-slate-200 text-xs">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generated Day-by-Day Preview Schedule -->
+        <div id="plannerGeneratedPreview" class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 border border-slate-200 shadow-2xs space-y-4">
+          <!-- Populated dynamically by JS -->
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 3: MY TRIPS (UPCOMING, COMPLETED, SAVED)
+           ========================================== -->
+      <section id="tab-trips" class="hidden space-y-5">
+        <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 border border-slate-200 shadow-2xs">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Personal Travel Log</span>
+              <h2 class="font-display font-extrabold text-lg sm:text-2xl text-srishti-navy mt-0.5">
+                My Trips & Saved Places
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Manage your upcoming itineraries, review completed journeys, and access bookmarked destinations.
+              </p>
+            </div>
+            <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button id="subtab-upcoming" onclick="setTripsSubtab('upcoming')" class="trips-subtab px-2.5 py-2 rounded-lg text-xs font-bold transition bg-srishti-navy text-white text-center">
+                Upcoming (<span id="countUpcoming">2</span>)
+              </button>
+              <button id="subtab-completed" onclick="setTripsSubtab('completed')" class="trips-subtab px-2.5 py-2 rounded-lg text-xs font-bold transition text-slate-600 hover:text-srishti-navy text-center">
+                Completed (<span id="countCompleted">1</span>)
+              </button>
+              <button id="subtab-saved" onclick="setTripsSubtab('saved')" class="trips-subtab px-2.5 py-2 rounded-lg text-xs font-bold transition text-slate-600 hover:text-srishti-navy text-center">
+                Saved (<span id="countSaved">4</span>)
+              </button>
+            </div>
+          </div>
+
+          <div id="tripsListContainer" class="pt-4 space-y-3.5">
+            <!-- Populated dynamically by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 4: SRISHTI AI TRAVEL ASSISTANT CHATBOT
+           ========================================== -->
+      <section id="tab-chat" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col h-[580px] sm:h-[640px]">
+          <!-- Chat Header -->
+          <div class="bg-gradient-to-r from-srishti-navy via-srishti-royal to-teal-800 p-3.5 sm:px-6 text-white flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-white p-0.5 shadow shrink-0">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-asset="logo" alt="Srishti AI" class="w-full h-full object-cover rounded-[10px]" />
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <h2 class="font-display font-bold text-sm sm:text-base truncate">Srishti AI Travel Assistant</h2>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 text-[10px] font-bold border border-emerald-400/40 shrink-0">
+                    Online
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-200 truncate">
+                  Ask about any city or country for places, timings, food & trip plans
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="openApiKeyModal()" class="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-[11px] font-semibold text-amber-200 border border-white/20 transition">
+                🔑 <span id="apiKeyStatusText" class="hidden sm:inline">AI Settings</span>
+              </button>
+              <button onclick="clearChatHistory()" class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[11px] font-medium text-slate-200 transition">
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Prompt Chips -->
+          <div class="bg-slate-50 px-3 sm:px-4 py-2 border-b border-slate-200 flex items-center gap-1.5 overflow-x-auto custom-scroll">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Try:</span>
+            <button onclick="sendQuickPrompt('Suggest some places to visit in UK with timings and explanations')" class="px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 text-srishti-navy border border-amber-300 text-[11px] font-bold shrink-0 transition">
+              🇬🇧 Places in UK
+            </button>
+            <button onclick="sendQuickPrompt('Complete tourist guide for Hyderabad: Charminar, Golconda Fort, Ramoji Film City & Biryani')" class="px-2.5 py-1 rounded-full bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-300 text-[11px] font-bold shrink-0 transition">
+              🕌 Hyderabad Guide
+            </button>
+            <button onclick="sendQuickPrompt('Top places to visit in Mumbai with timings and street food')" class="px-2.5 py-1 rounded-full bg-white hover:bg-teal-50 text-slate-700 border border-slate-200 text-[11px] font-medium shrink-0 transition">
+              🌊 Mumbai Sights
+            </button>
+            <button onclick="sendQuickPrompt('Suggest top places in Paris, Dubai, and Tokyo with daily budgets')" class="px-2.5 py-1 rounded-full bg-white hover:bg-teal-50 text-slate-700 border border-slate-200 text-[11px] font-medium shrink-0 transition">
+              🌐 Paris, Dubai & Tokyo
+            </button>
+            <button onclick="sendQuickPrompt('Plan a 2-day Araku Valley & Borra Caves trip from Visakhapatnam')" class="px-2.5 py-1 rounded-full bg-white hover:bg-teal-50 text-slate-700 border border-slate-200 text-[11px] font-medium shrink-0 transition">
+              ⛰️ Vizag & Araku
+            </button>
+          </div>
+
+          <!-- Chat Messages Scroll Area -->
+          <div id="chatMessagesContainer" class="flex-1 p-3.5 sm:p-5 overflow-y-auto custom-scroll space-y-3.5 bg-slate-50/50">
+            <!-- Populated dynamically by JS -->
+          </div>
+
+          <!-- Chat Input Bar -->
+          <form onsubmit="handleChatSubmit(event)" class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+            <input
+              id="chatInputField"
+              type="text"
+              placeholder="Ask about any place (e.g., Suggest places in UK, Hyderabad, Mumbai, Paris)..."
+              class="flex-1 min-w-0 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-srishti-navy"
+            />
+            <button type="submit" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-srishti-navy to-teal-700 hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow transition shrink-0">
+              Send ➤
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 5: USER PROFILE & TRAVEL PREFERENCES
+           ========================================== -->
+      <section id="tab-profile" class="hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Left Profile Card -->
+          <div class="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-4">
+            <div class="flex items-center gap-3.5">
+              <div id="profileBigAvatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-teal-600 text-srishti-navy font-display font-extrabold text-2xl sm:text-3xl flex items-center justify-center shadow-md border-2 border-white shrink-0">
+                S
+              </div>
+              <div class="min-w-0">
+                <span class="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">Verified Explorer</span>
+                <h2 id="profileDisplayName" class="font-display font-extrabold text-lg sm:text-xl text-srishti-navy mt-0.5 truncate">Srishti Explorer</h2>
+                <p id="profileDisplayEmail" class="text-xs text-slate-500 truncate">explorer@srishtitourism.in</p>
+                <p id="profileDisplayHome" class="text-xs font-medium text-teal-700 mt-0.5 truncate">📍 Ukkunagaram, Visakhapatnam</p>
+              </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-3 gap-2 pt-1">
+              <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+                <div id="statTotalTrips" class="font-display font-extrabold text-base sm:text-lg text-srishti-navy">3</div>
+                <div class="text-[11px] text-slate-500 font-medium">Trips</div>
+              </div>
+              <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-center">
+                <div id="statCompletedTrips" class="font-display font-extrabold text-base sm:text-lg text-emerald-700">1</div>
+                <div class="text-[11px] text-emerald-700 font-medium">Completed</div>
+              </div>
+              <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200 text-center">
+                <div id="statSavedPlaces" class="font-display font-extrabold text-base sm:text-lg text-rose-600">4</div>
+                <div class="text-[11px] text-rose-600 font-medium">Saved</div>
+              </div>
+            </div>
+
+            <!-- Avatar Picker -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Choose Profile Avatar</label>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" onclick="selectAvatar('S')" class="w-9 h-9 rounded-xl bg-amber-100 hover:bg-amber-200 text-srishti-navy font-bold text-sm flex items-center justify-center border border-amber-300 transition">S</button>
+                <button type="button" onclick="selectAvatar('🌍')" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-teal-100 text-base flex items-center justify-center border border-slate-200 transition">🌍</button>
+                <button type="button" onclick="selectAvatar('✈️')" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-teal-100 text-base flex items-center justify-center border border-slate-200 transition">✈️</button>
+                <button type="button" onclick="selectAvatar('🏔️')" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-teal-100 text-base flex items-center justify-center border border-slate-200 transition">🏔️</button>
+                <button type="button" onclick="selectAvatar('🏖️')" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-teal-100 text-base flex items-center justify-center border border-slate-200 transition">🏖️</button>
+                <button type="button" onclick="selectAvatar('🛕')" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-teal-100 text-base flex items-center justify-center border border-slate-200 transition">🛕</button>
+              </div>
+            </div>
+
+            <!-- Edit Profile Form -->
+            <form onsubmit="saveProfileForm(event)" class="space-y-3 pt-2 border-t border-slate-100">
+              <div>
+                <label for="inputProfileName" class="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+                <input id="inputProfileName" type="text" value="Srishti Explorer" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-medium text-slate-800" required />
+              </div>
+              <div>
+                <label for="inputProfileEmail" class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+                <input id="inputProfileEmail" type="email" value="explorer@srishtitourism.in" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-medium text-slate-800" required />
+              </div>
+              <div>
+                <label for="inputProfileHome" class="block text-xs font-bold text-slate-700 mb-1">Home City</label>
+                <input id="inputProfileHome" type="text" value="Ukkunagaram, Visakhapatnam" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-medium text-slate-800" />
+              </div>
+              <div class="pt-1 flex flex-wrap items-center gap-2">
+                <button type="submit" class="px-4 py-2.5 rounded-xl bg-srishti-navy hover:bg-srishti-royal text-white font-bold text-xs shadow transition">
+                  💾 Save Profile Changes
+                </button>
+                <button type="button" onclick="signOut()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 font-semibold text-xs transition">
+                  🚪 Sign Out
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right Column: Travel Preferences & Saved Destinations Quick Access -->
+          <div class="lg:col-span-7 space-y-5">
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-3.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 class="font-display font-bold text-base sm:text-lg text-srishti-navy">Personal Travel Preferences</h3>
+                  <p class="text-xs text-slate-500">Tap your favorite travel styles to personalize recommendations across the app.</p>
+                </div>
+                <button onclick="openPreferencesModal()" class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs transition">
+                  Customize Preferences
+                </button>
+              </div>
+              <div id="profilePrefsGrid" class="flex flex-wrap gap-2 pt-1">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-srishti-navy via-srishti-royal to-teal-900 rounded-2xl sm:rounded-3xl p-5 text-white shadow-md flex flex-col sm:flex-row items-center gap-4">
+              <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-asset="logo" alt="Srishti Tourism Crest" class="w-20 h-20 rounded-2xl object-cover border-2 border-amber-400 bg-white p-0.5 shrink-0" />
+              <div class="space-y-1.5 text-center sm:text-left">
+                <div class="text-amber-300 text-[11px] font-bold uppercase tracking-wider">Srishti World School Heritage Crest</div>
+                <h3 class="font-display font-bold text-base sm:text-lg">Explore • Learn • Journey Worldwide</h3>
+                <p class="text-xs text-slate-200 leading-relaxed">
+                  Combining the Srishti World School emblem values with global tourism discovery—helping travelers plan seamless itineraries across India and the world.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Mobile Navigation Bar (Clean 5-Column Grid, Zero Overlap) -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-1.5 py-1.5 grid grid-cols-5 gap-1 shadow-lg">
+      <button id="mnav-explore" onclick="switchTab('explore')" class="mnav-tab flex flex-col items-center justify-center py-1 px-1 rounded-xl text-srishti-navy font-bold text-[11px] bg-amber-50 truncate">
+        <span class="text-base leading-none mb-0.5">🌍</span>
+        <span class="truncate">Explore</span>
+      </button>
+      <button id="mnav-planner" onclick="switchTab('planner')" class="mnav-tab flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium text-[11px] truncate">
+        <span class="text-base leading-none mb-0.5">🗺️</span>
+        <span class="truncate">Planner</span>
+      </button>
+      <button id="mnav-trips" onclick="switchTab('trips')" class="mnav-tab flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium text-[11px] truncate">
+        <span class="text-base leading-none mb-0.5">🎒</span>
+        <span class="truncate">My Trips</span>
+      </button>
+      <button id="mnav-chat" onclick="switchTab('chat')" class="mnav-tab flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium text-[11px] truncate">
+        <span class="text-base leading-none mb-0.5">🤖</span>
+        <span class="truncate">AI Chat</span>
+      </button>
+      <button id="mnav-profile" onclick="switchTab('profile')" class="mnav-tab flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium text-[11px] truncate">
+        <span class="text-base leading-none mb-0.5">👤</span>
+        <span class="truncate">Profile</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ==========================================
+       MODAL 1: DESTINATION COMPLETE OVERVIEW (CLEAN NON-OVERLAPPING HEADER)
+       ========================================== -->
+  <div id="destinationModal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-6">
+    <div class="bg-white rounded-2xl sm:rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+      <!-- Clean Modal Header without overlapping text -->
+      <div id="destModalHeader" class="bg-srishti-navy text-white shrink-0">
+        <!-- Populated by JS -->
+      </div>
+      <!-- Sub-navigation inside Destination Modal -->
+      <div class="px-3.5 sm:px-5 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-1.5 overflow-x-auto custom-scroll pb-0.5">
+          <button id="dtab-overview" onclick="switchDestModalTab('overview')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-srishti-navy text-white transition shrink-0">
+            📋 Overview
+          </button>
+          <button id="dtab-hotels" onclick="switchDestModalTab('hotels')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 transition shrink-0">
+            🏨 Hotels
+          </button>
+          <button id="dtab-restaurants" onclick="switchDestModalTab('restaurants')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 transition shrink-0">
+            🍽️ Food
+          </button>
+          <button id="dtab-things" onclick="switchDestModalTab('things')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 transition shrink-0">
+            🎯 Things to Do
+          </button>
+        </div>
+        <button id="btnPlanFromModal" onclick="planCurrentDestination()" class="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-srishti-navy font-bold text-xs shadow-2xs transition shrink-0">
+          ⚡ Plan Trip Here
+        </button>
+      </div>
+      <!-- Modal Body -->
+      <div id="destModalBody" class="p-4 sm:p-6 overflow-y-auto custom-scroll flex-1 space-y-4">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: WELCOME & TRAVEL PREFERENCES
+       ========================================== -->
+  <div id="preferencesModal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white rounded-2xl sm:rounded-3xl max-w-xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-asset="logo" alt="Logo" class="w-10 h-10 rounded-xl object-cover border border-amber-300 shrink-0" />
+          <div class="min-w-0">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-teal-600 block">Personalize Srishti Tourism</span>
+            <h3 class="font-display font-extrabold text-base sm:text-xl text-srishti-navy truncate">Choose Travel Preferences</h3>
+          </div>
+        </div>
+        <button onclick="closePreferencesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold shrink-0">✕</button>
+      </div>
+      <p class="text-xs text-slate-600">
+        Select the travel styles you enjoy most to personalize destination rankings and AI recommendations.
+      </p>
+      <div id="modalPrefsContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <!-- Populated by JS -->
+      </div>
+      <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+        <button onclick="closePreferencesModal(); openAuthModal();" class="text-xs font-semibold text-teal-700 hover:underline">
+          Sign In / Create Account →
+        </button>
+        <button onclick="savePreferencesFromModal()" class="px-4 py-2.5 rounded-xl bg-srishti-navy hover:bg-srishti-royal text-white font-bold text-xs shadow transition">
+          Apply Preferences
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 3: SIGN IN & SIGN UP / CREATE ACCOUNT
+       ========================================== -->
+  <div id="authModal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full p-5 sm:p-7 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-asset="logo" alt="Logo" class="w-10 h-10 rounded-xl object-cover border border-amber-300 shrink-0" />
+          <div>
+            <h3 class="font-display font-extrabold text-base sm:text-lg text-srishti-navy">Srishti Tourism Account</h3>
+            <p id="authSubtitle" class="text-xs text-slate-500">Sign in to continue to your trips & bookmarks</p>
+          </div>
+        </div>
+        <button id="authCloseBtn" onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold shrink-0">✕</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl">
+        <button id="authTabSignIn" onclick="switchAuthMode('signin')" class="py-2 rounded-lg text-xs font-bold bg-srishti-navy text-white transition">
+          Sign In
+        </button>
+        <button id="authTabSignUp" onclick="switchAuthMode('signup')" class="py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-srishti-navy transition">
+          Create Account
+        </button>
+      </div>
+
+      <form onsubmit="handleAuthSubmit(event)" class="space-y-3">
+        <div id="authNameWrapper" class="hidden">
+          <label for="authFullName" class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
+          <input id="authFullName" type="text" placeholder="e.g., Kiran Kumar" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" />
+        </div>
+        <div>
+          <label for="authEmail" class="block text-xs font-bold text-slate-700 mb-1">Email or Username *</label>
+          <input id="authEmail" type="text" value="" placeholder="you@example.com" autocomplete="username" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" />
+        </div>
+        <div>
+          <label for="authPassword" class="block text-xs font-bold text-slate-700 mb-1">Password *</label>
+          <input id="authPassword" type="password" value="" placeholder="At least 6 characters" autocomplete="current-password" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" />
+        </div>
+        <div id="authHomeWrapper" class="hidden">
+          <label for="authHomeCity" class="block text-xs font-bold text-slate-700 mb-1">Home City</label>
+          <input id="authHomeCity" type="text" value="" placeholder="e.g., Visakhapatnam" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" />
+        </div>
+        <p id="authError" class="hidden text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert"></p>
+        <button id="authSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-srishti-navy to-teal-700 text-white font-bold text-xs sm:text-sm shadow transition">
+          Sign In to Srishti Tourism
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 4: AI API KEY SETTINGS
+       ========================================== -->
+  <div id="apiKeyModal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-teal-600 block">AI Chat Provider</span>
+          <h3 class="font-display font-extrabold text-base sm:text-lg text-srishti-navy">Configure AI Travel Engine</h3>
+        </div>
+        <button onclick="closeApiKeyModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Srishti Tourism includes a <strong>Built-in Global Travel Knowledge Engine</strong> that works out of the box. You can optionally add an OpenAI API key (`sk-...`) below.
+      </p>
+      <div>
+        <label for="inputOpenAiKey" class="block text-xs font-bold text-slate-700 mb-1">Optional API Key</label>
+        <input id="inputOpenAiKey" type="password" placeholder="sk-... (Optional)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" />
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button onclick="closeApiKeyModal()" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">Cancel</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 rounded-xl bg-srishti-navy text-white text-xs font-bold">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastBanner" class="fixed bottom-16 lg:bottom-6 right-3 sm:right-5 z-50 hidden px-3.5 py-2.5 rounded-xl bg-srishti-navy text-white text-xs font-semibold shadow-2xl border border-amber-400/50 flex items-center gap-2 max-w-[90vw]">
+    <span id="toastIcon">✨</span>
+    <span id="toastMessage" class="truncate">Saved!</span>
+  </div>
+
+  <!-- ==========================================
+       APPLICATION LOGIC & LANDMARK IMAGE ENGINE
+       ========================================== -->
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      });
+    }
+  </script>
+</body>
+</html>
