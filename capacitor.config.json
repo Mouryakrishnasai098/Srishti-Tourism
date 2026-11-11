@@ -1,0 +1,6 @@
+{
+  "appId": "com.srishti.tourism",
+  "appName": "Srishti Tourism",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}

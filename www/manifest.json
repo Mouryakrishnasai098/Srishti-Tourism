@@ -1,0 +1,16 @@
+{
+  "name": "Srishti Tourism — Smart Travel Companion & Trip Planner",
+  "short_name": "Srishti Tourism",
+  "description": "Explore India & world destinations with landmark guides, budget breakdown, itinerary generator, My Trips and Srishti AI Travel Chat.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B2545",
+  "theme_color": "#0B2545",
+  "categories": ["travel", "navigation", "lifestyle"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
