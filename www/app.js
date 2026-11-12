@@ -572,23 +572,67 @@ let state = {
   ]
 };
 
+// Snapshot of the starting chat/preferences, used to give every NEW account a clean start
+const DEFAULT_CHAT = JSON.parse(JSON.stringify(state.chatMessages));
+const DEFAULT_PREFS = state.preferences.slice();
+
 let budgetChartInstance = null;
 
+// Each account keeps its own trips, saved places, chat and preferences on the device.
+const DATA_KEY_PREFIX = 'srishti_data_v1_';
+function dataKeyFor(email) { return DATA_KEY_PREFIX + String(email || '').toLowerCase(); }
+
+function freshAccountData() {
+  return {
+    preferences: DEFAULT_PREFS.slice(),
+    savedIds: [],
+    trips: [],
+    chatMessages: JSON.parse(JSON.stringify(DEFAULT_CHAT)),
+    apiKey: ''
+  };
+}
+
+function applyAccountData(email, forceFresh) {
+  let data = null;
+  if (!forceFresh) {
+    try { data = JSON.parse(localStorage.getItem(dataKeyFor(email)) || 'null'); } catch (e) { data = null; }
+  }
+  if (!data || typeof data !== 'object') data = freshAccountData();
+  const base = freshAccountData();
+  state.preferences = Array.isArray(data.preferences) ? data.preferences : base.preferences;
+  state.savedIds = Array.isArray(data.savedIds) ? data.savedIds : base.savedIds;
+  state.trips = Array.isArray(data.trips) ? data.trips : base.trips;
+  state.chatMessages = (Array.isArray(data.chatMessages) && data.chatMessages.length) ? data.chatMessages : base.chatMessages;
+  state.apiKey = typeof data.apiKey === 'string' ? data.apiKey : '';
+  state.activeTab = 'explore';
+}
+
+function refreshAllViews() {
+  updateBadges();
+  renderDestinations();
+  renderChatMessages();
+  renderTripsList();
+  renderProfileTab();
+  syncHeaderUser();
+  try { switchTab('explore'); } catch (e) {}
+}
+
 function loadState() {
-  try {
-    const raw = localStorage.getItem('srishti_tourism_state_v3');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.user) {
-        state = Object.assign({}, state, parsed);
-      }
-    }
-  } catch (e) {}
+  // Old shared data (from before accounts had their own data) is removed so nobody inherits test trips.
+  try { localStorage.removeItem('srishti_tourism_state_v3'); } catch (e) {}
 }
 
 function persistState() {
+  const email = getSessionEmail();
+  if (!email) return; // nothing is saved while nobody is signed in
   try {
-    localStorage.setItem('srishti_tourism_state_v3', JSON.stringify(state));
+    localStorage.setItem(dataKeyFor(email), JSON.stringify({
+      preferences: state.preferences,
+      savedIds: state.savedIds,
+      trips: state.trips,
+      chatMessages: state.chatMessages,
+      apiKey: state.apiKey || ''
+    }));
   } catch (e) {}
 }
 
@@ -1756,7 +1800,10 @@ function unlockApp() {
 }
 
 function signOut() {
+  persistState();
   setSessionEmail('');
+  applyAccountData('', true);
+  refreshAllViews();
   showLoginGate();
   window.scrollTo(0, 0);
 }
@@ -1824,10 +1871,10 @@ async function handleAuthSubmit(e) {
   }
 
   setSessionEmail(email);
+  applyAccountData(email, state.authMode === 'signup'); // new account = clean start, existing account = its own saved data
   persistState();
-  syncHeaderUser();
-  renderProfileTab();
   document.getElementById('authPassword').value = '';
+  refreshAllViews();
   unlockApp();
 }
 
@@ -1876,9 +1923,11 @@ window.addEventListener('DOMContentLoaded', function() {
     state.user.email = acc.email;
     state.user.home = acc.home;
     state.user.avatar = (acc.name || 'S').charAt(0).toUpperCase();
-    syncHeaderUser();
-    renderProfileTab();
+    applyAccountData(sessionEmail, false);
+    refreshAllViews();
   } else {
+    applyAccountData('', true);
+    refreshAllViews();
     showLoginGate();
   }
 });

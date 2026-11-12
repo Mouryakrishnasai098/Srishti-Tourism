@@ -1,5 +1,5 @@
 // Srishti Tourism service worker: caches the app shell so it opens fast and offline.
-const CACHE = 'srishti-tourism-v2';
+const CACHE = 'srishti-tourism-v3';
 const SHELL = [
   './', './index.html', './app.js', './styles.css', './tailwind.css',
   './vendor/chart.umd.js', './manifest.json',
